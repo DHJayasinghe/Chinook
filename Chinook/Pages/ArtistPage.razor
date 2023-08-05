@@ -3,6 +3,7 @@
 
 @using Chinook.Models
 @using Chinook.ClientModels
+@using Chinook.Services;
 @using Microsoft.EntityFrameworkCore
 @using System.Security.Claims;
 
@@ -61,6 +62,7 @@ else
     [Parameter] public long ArtistId { get; set; }
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
     [Inject] IDbContextFactory<ChinookContext> DbFactory { get; set; }
+    [Inject] PlaylistService playlistService { get; set; }
     private Modal PlaylistDialog { get; set; }
 
     private Artist Artist;
@@ -161,8 +163,17 @@ else
                 {
                     Name = NewPlaylistName,
                 };
-            DbContext.Playlists.Add(newPlayList);
+            var userPlayList = new Models.UserPlaylist()
+                {
+                    Playlist = newPlayList,
+                    UserId = CurrentUserId
+                };
+            DbContext.UserPlaylists.Add(userPlayList);
             DbContext.SaveChanges();
+
+            playlistService.AddItem();
+            NewPlaylistName = string.Empty;
+
             SelectedPlayListId = newPlayList.PlaylistId;
             PlayLists.Add(new ClientModels.Playlist { Id = newPlayList.PlaylistId, Name = newPlayList.Name });
         }
@@ -180,8 +191,6 @@ else
         var track = DbContext.Tracks.Find(SelectedTrack.TrackId);
         playlist.Tracks.Add(track);
         DbContext.SaveChanges();
-
-        NewPlaylistName = string.Empty;
     }
 
     private void CloseInfoMessage()

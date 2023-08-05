@@ -1,4 +1,5 @@
 ﻿@using Chinook.ClientModels;
+@using Chinook.Services;
 @using Microsoft.EntityFrameworkCore;
 @using System.Security.Claims;
 <div class="top-row ps-3 navbar navbar-dark">
@@ -40,6 +41,7 @@
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
+    [CascadingParameter] private PlaylistService dataService { get; set; }
     [Inject] IDbContextFactory<ChinookContext> DbFactory { get; set; }
     private string CurrentUserId;
     private List<Playlist> PlayLists;
@@ -52,7 +54,18 @@
         DbContext = await DbFactory.CreateDbContextAsync();
 
         PlayLists = await GetCurrentUserPlayListAsync();
+    }
 
+    protected override void OnParametersSet()
+    {
+        dataService.OnDataUpdated += OnDataUpdated;
+    }
+
+
+    private async void OnDataUpdated(object sender, EventArgs e)
+    {
+        PlayLists = GetCurrentUserPlayListAsync().Result;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task<List<Playlist>> GetCurrentUserPlayListAsync()
