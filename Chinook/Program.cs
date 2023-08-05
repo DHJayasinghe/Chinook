@@ -20,7 +20,8 @@ services.AddRazorPages();
 services.AddServerSideBlazor();
 services
     .AddScoped<PlaylistService>()
-    .AddScoped<TrackService>();
+    .AddScoped<TrackService>()
+    .AddScoped<ArtistService>();
 
 services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ChinookUser>>();
 
