@@ -22,12 +22,12 @@ else
         </thead>
         <tbody>
             @foreach (var artist in Artists)
-            {
-                <tr>
+        {
+            <tr>
                     <td><a href="Artist/@artist.ArtistId">@artist.Name</a></td>
                     <td>@artist.Albums.Count()</td>
                 </tr>
-            }
+        }
         </tbody>
     </table>
 }
