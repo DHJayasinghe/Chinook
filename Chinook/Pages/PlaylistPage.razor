@@ -5,7 +5,7 @@
 
 @if (!string.IsNullOrWhiteSpace(InfoMessage))
 {
-    <div class="alert alert-info fade show">
+    <div class="alert fade show @(SuccessMessage?"alert-info":"alert-danger")">
         <div class="d-flex align-items-start">
             <div class="flex-grow-1">
                 @InfoMessage

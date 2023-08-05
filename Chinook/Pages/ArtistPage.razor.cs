@@ -34,7 +34,7 @@ public partial class ArtistPage
         CurrentUserId = await GetUserId();
 
         Artist = TrackService.GetArtist(ArtistId);
-        Tracks = TrackService.GetByArtist(ArtistId, CurrentUserId);
+        Tracks = TrackService.GetByArtistWithUserFavorite(ArtistId, CurrentUserId);
         PlayLists = PlaylistService.GetByUser(CurrentUserId);
     }
 
@@ -58,18 +58,6 @@ public partial class ArtistPage
 
         track.IsFavorite = true;
         DisplayAddedToFavoriteMsg(track);
-    }
-
-    private void DisplayAddedToFavoriteMsg(PlaylistTrack track)
-    {
-        InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
-        SuccessMessage = true;
-    }
-
-    private void DisplayFailedToAddToFavoriteMsg(PlaylistTrack track)
-    {
-        InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} failed to added to playlist Favorites.";
-        SuccessMessage = false;
     }
 
     private void UnfavoriteTrack(long trackId)
@@ -96,6 +84,17 @@ public partial class ArtistPage
     private void DisplayFailedToRemoveFromFavoriteMsg(PlaylistTrack track)
     {
         InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} failed to remove from playlist Favorites.";
+        SuccessMessage = false;
+    }
+    private void DisplayAddedToFavoriteMsg(PlaylistTrack track)
+    {
+        InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
+        SuccessMessage = true;
+    }
+
+    private void DisplayFailedToAddToFavoriteMsg(PlaylistTrack track)
+    {
+        InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} failed to added to playlist Favorites.";
         SuccessMessage = false;
     }
 

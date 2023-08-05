@@ -1,43 +1,32 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Chinook.Services;
+using Chinook.ClientModels;
 
 namespace Chinook.Pages;
 
 public partial class PlaylistPage
 {
     [Parameter] public long PlaylistId { get; set; }
-    [Inject] IDbContextFactory<ChinookContext> DbFactory { get; set; }
+    [Inject] TrackService TrackService { get; set; }
+    [Inject] PlaylistService PlaylistService { get; set; }
+
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
 
-    private Chinook.ClientModels.Playlist Playlist;
+    private Playlist Playlist;
     private string CurrentUserId;
     private string InfoMessage;
+    private bool SuccessMessage = true;
 
     protected override async Task OnInitializedAsync()
     {
         CurrentUserId = await GetUserId();
 
         await InvokeAsync(StateHasChanged);
-        var DbContext = await DbFactory.CreateDbContextAsync();
 
-        Playlist = DbContext.Playlists
-            .Include(a => a.Tracks).ThenInclude(a => a.Album).ThenInclude(a => a.Artist)
-            .Where(p => p.PlaylistId == PlaylistId)
-            .Select(p => new ClientModels.Playlist()
-            {
-                Name = p.Name,
-                Tracks = p.Tracks.Select(t => new ClientModels.PlaylistTrack()
-                {
-                    AlbumTitle = t.Album.Title,
-                    ArtistName = t.Album.Artist.Name,
-                    TrackId = t.TrackId,
-                    TrackName = t.Name,
-                    IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
-                }).ToList()
-            })
-            .FirstOrDefault();
+        Playlist = PlaylistService.Get(PlaylistId);
+        Playlist.Tracks = TrackService.GetByPlaylistWithUserFavorite(PlaylistId, CurrentUserId);
     }
 
     private async Task<string> GetUserId()
@@ -49,14 +38,55 @@ public partial class PlaylistPage
 
     private void FavoriteTrack(long trackId)
     {
-        var track = Playlist.Tracks.FirstOrDefault(t => t.TrackId == trackId);
-        InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
+        var track = Playlist.Tracks.First(t => t.TrackId == trackId);
+        var success = PlaylistService.AddToFavorite(CurrentUserId, trackId);
+
+        if (!success)
+        {
+            DisplayFailedToAddToFavoriteMsg(track);
+            return;
+        }
+
+        track.IsFavorite = true;
+        DisplayAddedToFavoriteMsg(track);
     }
 
     private void UnfavoriteTrack(long trackId)
     {
-        var track = Playlist.Tracks.FirstOrDefault(t => t.TrackId == trackId);
+        var track = Playlist.Tracks.First(t => t.TrackId == trackId);
+        var success = PlaylistService.RemoveFromFavorite(CurrentUserId, trackId);
+
+        if (!success)
+        {
+            DisplayFailedToRemoveFromFavoriteMsg(track);
+            return;
+        }
+
+        track.IsFavorite = false;
+        DisplayRemovedFromFavoriteMsg(track);
+    }
+
+    private void DisplayRemovedFromFavoriteMsg(PlaylistTrack track)
+    {
         InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} removed from playlist Favorites.";
+        SuccessMessage = true;
+    }
+
+    private void DisplayFailedToRemoveFromFavoriteMsg(PlaylistTrack track)
+    {
+        InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} failed to remove from playlist Favorites.";
+        SuccessMessage = false;
+    }
+    private void DisplayAddedToFavoriteMsg(PlaylistTrack track)
+    {
+        InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
+        SuccessMessage = true;
+    }
+
+    private void DisplayFailedToAddToFavoriteMsg(PlaylistTrack track)
+    {
+        InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} failed to added to playlist Favorites.";
+        SuccessMessage = false;
     }
 
     private void RemoveTrack(long trackId)
@@ -68,5 +98,6 @@ public partial class PlaylistPage
     private void CloseInfoMessage()
     {
         InfoMessage = "";
+        SuccessMessage = true;
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Chinook.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore;
 using Chinook.ClientModels;
 using System.Security.Claims;
 
@@ -11,27 +10,27 @@ public partial class NavMenu
 {
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
     [CascadingParameter] private PlaylistService dataService { get; set; }
-    [Inject] IDbContextFactory<ChinookContext> DbFactory { get; set; }
+
+    [Inject] PlaylistService PlaylistService { get; set; }
     private string CurrentUserId;
     private List<Playlist> PlayLists;
-    private ChinookContext DbContext;
 
     protected override async Task OnInitializedAsync()
     {
         await InvokeAsync(StateHasChanged);
         CurrentUserId = await GetUserId();
-        DbContext = await DbFactory.CreateDbContextAsync();
 
+        PlaylistService.AddFavoritePlaylistIfNotExist(CurrentUserId);
         PlayLists = await GetCurrentUserPlayListAsync();
     }
 
     protected override void OnParametersSet()
     {
-        dataService.PlayListAddedEvent += OnDataUpdated;
+        dataService.PlayListAddedEvent += RefreshPlaylistAsync;
     }
 
 
-    private async void OnDataUpdated(object sender, EventArgs e)
+    private async void RefreshPlaylistAsync(object sender, EventArgs e)
     {
         PlayLists = GetCurrentUserPlayListAsync().Result;
         await InvokeAsync(StateHasChanged);
@@ -39,18 +38,8 @@ public partial class NavMenu
 
     private async Task<List<Playlist>> GetCurrentUserPlayListAsync()
     {
-        if (!DbContext.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "My favorite tracks"))
-        {
-            var myFavoritePlaylist = new Models.Playlist() { Name = "My favorite tracks" };
-            var userPlaylist = new Models.UserPlaylist() { Playlist = myFavoritePlaylist, UserId = CurrentUserId };
-            DbContext.UserPlaylists.Add(userPlaylist);
-            DbContext.SaveChanges();
-        }
-
-        return DbContext.UserPlaylists.Include(up => up.Playlist)
-            .Where(up => up.UserId == CurrentUserId)
-            .OrderBy(up => up.Playlist.Name != "My favorite tracks")
-            .Select(up => new Playlist { Name = up.Playlist.Name })
+        return PlaylistService.GetByUser(CurrentUserId)
+            .OrderBy(up => up.Name != PlaylistService.FAVORITE_PLAYLIST_NAME)
             .ToList();
     }
 

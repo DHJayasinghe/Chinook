@@ -30,6 +30,16 @@ public class PlaylistService
         return newPlayList.PlaylistId;
     }
 
+    public void AddFavoritePlaylistIfNotExist(string userId)
+    {
+        if (_dbContext.UserPlaylists.Any(up => up.UserId == userId && up.Playlist.Name == FAVORITE_PLAYLIST_NAME)) return;
+
+        var myFavoritePlaylist = new Models.Playlist() { Name = FAVORITE_PLAYLIST_NAME };
+        var userPlaylist = new UserPlaylist() { Playlist = myFavoritePlaylist, UserId = userId };
+        _dbContext.UserPlaylists.Add(userPlaylist);
+        _dbContext.SaveChanges();
+    }
+
     protected virtual void TriggerPlaylistAddedEvent()
     {
         // Check if there are any subscribers to the event
@@ -70,4 +80,15 @@ public class PlaylistService
             .Where(up => up.UserId == userId)
             .Select(up => new ClientModels.Playlist { Id = up.PlaylistId, Name = up.Playlist.Name })
             .ToList();
+
+    public ClientModels.Playlist Get(long id)
+    {
+       return _dbContext.Playlists
+           .Where(p => p.PlaylistId == id)
+           .Select(p => new ClientModels.Playlist()
+           {
+               Name = p.Name
+           })
+           .FirstOrDefault();
+    }
 }

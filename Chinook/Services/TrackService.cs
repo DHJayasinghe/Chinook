@@ -1,4 +1,5 @@
-﻿using Chinook.Models;
+﻿using Chinook.ClientModels;
+using Chinook.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Chinook.Services;
@@ -12,10 +13,10 @@ public class TrackService
         _dbContext = dbContext;
     }
 
-    public List<ClientModels.PlaylistTrack> GetByArtist(long artistId, string requestedUserId) => artistId > 0
+    public List<ClientModels.PlaylistTrack> GetByArtistWithUserFavorite(long artistId, string requestedUserId) => artistId > 0
         ? _dbContext.Tracks.Where(a => a.Album.ArtistId == artistId)
             .Include(a => a.Album)
-             .Select(t => new ClientModels.PlaylistTrack()
+             .Select(t => new PlaylistTrack()
              {
                  AlbumTitle = (t.Album == null ? "-" : t.Album.Title),
                  TrackId = t.TrackId,
@@ -27,6 +28,26 @@ public class TrackService
              })
             .ToList()
         : default;
+
+    public List<PlaylistTrack> GetByPlaylistWithUserFavorite(long playlistId, string requestedUserId) => playlistId > 0
+        ? _dbContext.Playlists
+            .Include(a => a.Tracks)
+                .ThenInclude(a => a.Album)
+                    .ThenInclude(a => a.Artist)
+            .Where(p => p.PlaylistId == playlistId)
+            .SelectMany(p => p.Tracks)
+            .Select(t => new PlaylistTrack()
+            {
+                AlbumTitle = t.Album.Title,
+                ArtistName = t.Album.Artist.Name,
+                TrackId = t.TrackId,
+                TrackName = t.Name,
+                IsFavorite = t.Playlists
+                        .Where(p => p.UserPlaylists
+                            .Any(up => up.UserId == requestedUserId && up.Playlist.Name == PlaylistService.FAVORITE_PLAYLIST_NAME))
+                        .Any()
+            }).ToList()
+       : default;
 
     public Artist GetArtist(long artistId) => artistId > 0 ? _dbContext.Artists.SingleOrDefault(a => a.ArtistId == artistId) : null;
 
