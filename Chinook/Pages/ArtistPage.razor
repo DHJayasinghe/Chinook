@@ -119,13 +119,7 @@ else
         var myFavoritePlaylist = DbContext.UserPlaylists
             .Include(up => up.Playlist)
             .SingleOrDefault(up => up.UserId == CurrentUserId && up.Playlist.Name == myFavoriteTrackTitle)
-            ?.Playlist;
-        if (myFavoritePlaylist == null)
-        {
-            myFavoritePlaylist = new Models.Playlist() { Name = myFavoriteTrackTitle };
-            var userPlaylist = new UserPlaylist() { Playlist = myFavoritePlaylist, UserId = CurrentUserId };
-            DbContext.UserPlaylists.Add(userPlaylist);
-        }
+            .Playlist;
 
         var t = DbContext.Tracks.Single(tr => tr.TrackId == trackId);
         myFavoritePlaylist.Tracks.Add(t);
