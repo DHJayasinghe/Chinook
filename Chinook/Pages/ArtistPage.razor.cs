@@ -98,6 +98,13 @@ public partial class ArtistPage
         SuccessMessage = false;
     }
 
+    private void DisplayAddedToPlaylistMsg()
+    {
+        var selectedPlayListName = PlayLists.First(playlist => playlist.Id == SelectedPlayListId).Name;
+        InfoMessage = $"Track {Artist.Name} - {SelectedTrack.AlbumTitle} - {SelectedTrack.TrackName} added to playlist {selectedPlayListName}.";
+        PlaylistDialog.Close();
+    }
+
     private void OpenPlaylistDialog(long trackId)
     {
         CloseInfoMessage();
@@ -114,11 +121,7 @@ public partial class ArtistPage
             NewPlaylistName = string.Empty;
         }
         TrackService.AddToPlaylist(SelectedPlayListId, SelectedTrack.TrackId);
-
-        var selectedPlayListName = PlayLists.First(playlist => playlist.Id == SelectedPlayListId).Name;
-        InfoMessage = $"Track {Artist.Name} - {SelectedTrack.AlbumTitle} - {SelectedTrack.TrackName} added to playlist {selectedPlayListName}.";
-
-        PlaylistDialog.Close();
+        DisplayAddedToPlaylistMsg();
     }
 
     private void SavePlaylistAndAddToTheExistingList()
