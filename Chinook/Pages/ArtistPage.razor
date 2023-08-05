@@ -3,7 +3,7 @@
 
 @if (!string.IsNullOrWhiteSpace(InfoMessage))
 {
-    <div class="alert alert-info fade show">
+    <div class="alert fade show @(SuccessMessage?"alert-info":"alert-danger")">
         <div class="d-flex align-items-start">
             <div class="flex-grow-1">
                 @InfoMessage
@@ -12,6 +12,7 @@
         </div>
     </div>
 }
+
 
 @if (Artist == null)
 {
@@ -30,23 +31,23 @@ else
         </thead>
         <tbody>
             @foreach (var track in Tracks)
-        {
-            <tr>
+            {
+                <tr>
                     <td>@track.AlbumTitle</td>
                     <td>@track.TrackName</td>
                     <td>
                         @if (track.IsFavorite)
-                    {
-                        <a href="#" class="m-1" title="Unmark as favorite" @onclick="@(() => UnfavoriteTrack(track.TrackId))" @onclick:preventDefault><i class="bi bi-star-fill"></i></a>
-                    }
-                    else
-                    {
-                        <a href="#" class="m-1" title="Mark as favorite" @onclick="@(() => FavoriteTrack(track.TrackId))" @onclick:preventDefault><i class="bi bi-star"></i></a>
-                    }
+                        {
+                            <a href="#" class="m-1" title="Unmark as favorite" @onclick="@(() => UnfavoriteTrack(track.TrackId))" @onclick:preventDefault><i class="bi bi-star-fill"></i></a>
+                        }
+                        else
+                        {
+                            <a href="#" class="m-1" title="Mark as favorite" @onclick="@(() => FavoriteTrack(track.TrackId))" @onclick:preventDefault><i class="bi bi-star"></i></a>
+                        }
                         <a href="#" class="m-1" title="Add to playlist" @onclick="@(() => OpenPlaylistDialog(track.TrackId))" @onclick:preventDefault><i class="bi bi-file-earmark-plus"></i></a>
                     </td>
                 </tr>
-        }
+            }
         </tbody>
     </table>
 }
@@ -57,19 +58,19 @@ else
     </Title>
     <Body>
         @if (SelectedTrack != null)
-    {
-        <div class="form-group mb-2">
+        {
+            <div class="form-group mb-2">
                 <label>@Artist.Name - @SelectedTrack.AlbumTitle - @SelectedTrack.TrackName</label>
             </div>
-    }
+        }
 
         <div class="form-group mb-2">
             <label for="ExistingPlaylist">Add to existing playlist</label>
             <select @bind="SelectedPlayListId" class="form-control" id="ExistingPlaylist">
                 @foreach (var playlist in PlayLists)
-            {
-                <option value="@playlist.Id">@playlist.Name</option>
-            }
+                {
+                    <option value="@playlist.Id">@playlist.Name</option>
+                }
             </select>
         </div>
         <div class="form-group mb-2">

@@ -27,7 +27,7 @@ public partial class NavMenu
 
     protected override void OnParametersSet()
     {
-        dataService.OnDataUpdated += OnDataUpdated;
+        dataService.PlayListAddedEvent += OnDataUpdated;
     }
 
 
