@@ -218,7 +218,7 @@ public partial class ChinookContext : IdentityDbContext<ChinookUser>
         {
             entity.ToTable("Playlist");
 
-            entity.Property(e => e.PlaylistId).ValueGeneratedNever();
+            entity.Property(e => e.PlaylistId).ValueGeneratedOnAdd();
 
             entity.Property(e => e.Name).HasColumnType("NVARCHAR(120)");
 

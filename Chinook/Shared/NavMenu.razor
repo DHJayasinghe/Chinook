@@ -48,15 +48,20 @@
     {
         await InvokeAsync(StateHasChanged);
         CurrentUserId = await GetUserId();
-        var DbContext = await DbFactory.CreateDbContextAsync();
 
-        PlayLists = DbContext.UserPlaylists.Include(up => up.Playlist)
-            .Where(up => up.UserId == CurrentUserId)
-            .Select(up => new Playlist { Name = up.Playlist.Name })
-            .ToList();
+        PlayLists = await GetCurrentUserPlayListAsync();
 
     }
 
+    private async Task<List<Playlist>> GetCurrentUserPlayListAsync()
+    {
+        var DbContext = await DbFactory.CreateDbContextAsync();
+
+        return DbContext.UserPlaylists.Include(up => up.Playlist)
+            .Where(up => up.UserId == CurrentUserId)
+            .Select(up => new Playlist { Name = up.Playlist.Name })
+            .ToList();
+    }
 
     private async Task<string> GetUserId()
     {

@@ -25,15 +25,15 @@
 else
 {
     <h1>@Artist.Name</h1>
-        <table class="table table-striped table-hover table-sm">
-            <thead>
-                <tr>
-                    <th>Album title</th>
-                    <th>Track name</th>
-                    <th></th>
+    <table class="table table-striped table-hover table-sm">
+        <thead>
+            <tr>
+                <th>Album title</th>
+                <th>Track name</th>
+                <th></th>
             </tr>
-            </thead>
-            <tbody>
+        </thead>
+        <tbody>
             @foreach (var track in Tracks)
             {
                 <tr>
@@ -52,8 +52,8 @@ else
                     </td>
                 </tr>
             }
-            </tbody>
-        </table>
+        </tbody>
+    </table>
 
 }
 
@@ -64,29 +64,42 @@ else
     private Modal PlaylistDialog { get; set; }
 
     private Artist Artist;
-    private List<PlaylistTrack> Tracks;
-    private DbContext DbContext;
-    private PlaylistTrack SelectedTrack;
+    private List<ClientModels.PlaylistTrack> Tracks;
+    private ChinookContext DbContext;
+    private ClientModels.PlaylistTrack SelectedTrack;
     private string InfoMessage;
     private string CurrentUserId;
+    private List<ClientModels.Playlist> PlayLists;
+    private long SelectedPlayListId = 0;
+    private string NewPlaylistName = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         await InvokeAsync(StateHasChanged);
         CurrentUserId = await GetUserId();
-        var DbContext = await DbFactory.CreateDbContextAsync();
+        DbContext = await DbFactory.CreateDbContextAsync();
 
         Artist = DbContext.Artists.SingleOrDefault(a => a.ArtistId == ArtistId);
 
         Tracks = DbContext.Tracks.Where(a => a.Album.ArtistId == ArtistId)
             .Include(a => a.Album)
-            .Select(t => new PlaylistTrack()
+            .Select(t => new ClientModels.PlaylistTrack()
                 {
                     AlbumTitle = (t.Album == null ? "-" : t.Album.Title),
                     TrackId = t.TrackId,
                     TrackName = t.Name,
                     IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
                 })
+            .ToList();
+
+        PlayLists = await GetCurrentUserPlayListAsync();
+    }
+
+    private async Task<List<ClientModels.Playlist>> GetCurrentUserPlayListAsync()
+    {
+        return DbContext.UserPlaylists.Include(up => up.Playlist)
+            .Where(up => up.UserId == CurrentUserId)
+            .Select(up => new ClientModels.Playlist { Id = up.PlaylistId, Name = up.Playlist.Name })
             .ToList();
     }
 
@@ -116,11 +129,36 @@ else
         PlaylistDialog.Open();
     }
 
-    private void AddTrackToPlaylist()
+    private async Task AddTrackToPlaylist()
     {
         CloseInfoMessage();
-        InfoMessage = $"Track {Artist.Name} - {SelectedTrack.AlbumTitle} - {SelectedTrack.TrackName} added to playlist {{playlist name}}.";
+        if (!string.IsNullOrEmpty(NewPlaylistName))
+        {
+            var newPlayList = new Models.Playlist()
+                {
+                    Name = NewPlaylistName,
+                };
+            DbContext.Playlists.Add(newPlayList);
+            DbContext.SaveChanges();
+            SelectedPlayListId = newPlayList.PlaylistId;
+            PlayLists.Add(new ClientModels.Playlist { Id = newPlayList.PlaylistId, Name = newPlayList.Name });
+        }
+        var selectedPlayListName = PlayLists.First(playlist => playlist.Id == SelectedPlayListId).Name;
+        InfoMessage = $"Track {Artist.Name} - {SelectedTrack.AlbumTitle} - {SelectedTrack.TrackName} added to playlist {selectedPlayListName}.";
         PlaylistDialog.Close();
+
+
+        // enable lazy loading here
+        var playlist = DbContext.Playlists
+            .Include(playlist => playlist.Tracks)
+            .First(playlist => playlist.PlaylistId == SelectedPlayListId);
+        if (playlist.Tracks.Any(pt => pt.TrackId == SelectedTrack.TrackId)) return;
+
+        var track = DbContext.Tracks.Find(SelectedTrack.TrackId);
+        playlist.Tracks.Add(track);
+        DbContext.SaveChanges();
+
+        NewPlaylistName = string.Empty;
     }
 
     private void CloseInfoMessage()
@@ -145,15 +183,16 @@ else
 
         <div class="form-group mb-2">
             <label for="ExistingPlaylist">Add to existing playlist</label>
-            <select class="form-control" id="ExistingPlaylist">
-                <option>Playlist 1</option>
-                <option>Playlist 2</option>
-                <option>Playlist 3</option>
+            <select @bind="SelectedPlayListId" class="form-control" id="ExistingPlaylist">
+                @foreach (var playlist in PlayLists)
+                {
+                    <option value="@playlist.Id">@playlist.Name</option>
+                }
             </select>
         </div>
         <div class="form-group mb-2">
             <label for="NewPlaylist">Create new playlist</label>
-            <input type="text" id="NewPlaylist" class="form-control" placeholder="Name for the new playlist">
+            <input @bind="NewPlaylistName" type="text" id="NewPlaylist" class="form-control" placeholder="Name for the new playlist">
         </div>
     </Body>
     <Footer>
