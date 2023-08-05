@@ -1,7 +1,9 @@
-﻿@inherits LayoutComponentBase
+﻿@using Chinook.Services;
+@inherits LayoutComponentBase
 
 <PageTitle>Chinook</PageTitle>
 
+ <CascadingValue Value="dataService">
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -17,3 +19,9 @@
         </article>
     </main>
 </div>
+</CascadingValue>
+
+@code {
+    [Inject]
+    private PlaylistService dataService { get; set; }
+}
