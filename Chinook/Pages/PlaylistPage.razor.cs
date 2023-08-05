@@ -18,15 +18,24 @@ public partial class PlaylistPage
     private string CurrentUserId;
     private string InfoMessage;
     private bool SuccessMessage = true;
+    private long _currentPlayListId=0;
 
     protected override async Task OnInitializedAsync()
     {
         CurrentUserId = await GetUserId();
 
         await InvokeAsync(StateHasChanged);
+    }
 
-        Playlist = PlaylistService.Get(PlaylistId);
-        Playlist.Tracks = TrackService.GetByPlaylistWithUserFavorite(PlaylistId, CurrentUserId);
+    protected override void OnParametersSet()
+    {
+        if (_currentPlayListId != PlaylistId)
+        {
+            _currentPlayListId = PlaylistId;
+
+            Playlist = PlaylistService.Get(PlaylistId);
+            Playlist.Tracks = TrackService.GetByPlaylistWithUserFavorite(PlaylistId, CurrentUserId);
+        }
     }
 
     private async Task<string> GetUserId()
