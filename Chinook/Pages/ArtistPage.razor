@@ -42,7 +42,7 @@ else
                     <td>
                         @if (track.IsFavorite)
                         {
-                            <a href="#" class="m-1" title="Unmark as favorite" @onclick="@(() => UnfavoriteTrack(track.TrackId))" @onclick:preventDefault><i class="bi bi-star-filled"></i></a>
+                            <a href="#" class="m-1" title="Unmark as favorite" @onclick="@(() => UnfavoriteTrack(track.TrackId))" @onclick:preventDefault><i class="bi bi-star-fill"></i></a>
                         }
                         else
                         {
@@ -72,6 +72,7 @@ else
     private List<ClientModels.Playlist> PlayLists;
     private long SelectedPlayListId = 0;
     private string NewPlaylistName = string.Empty;
+    private const string myFavoriteTrackTitle = "My favorite tracks";
 
     protected override async Task OnInitializedAsync()
     {
@@ -88,7 +89,7 @@ else
                     AlbumTitle = (t.Album == null ? "-" : t.Album.Title),
                     TrackId = t.TrackId,
                     TrackName = t.Name,
-                    IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
+                    IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == myFavoriteTrackTitle)).Any()
                 })
             .ToList();
 
@@ -114,12 +115,40 @@ else
     {
         var track = Tracks.FirstOrDefault(t => t.TrackId == trackId);
         InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
+
+        var myFavoritePlaylist = DbContext.UserPlaylists
+            .Include(up => up.Playlist)
+            .SingleOrDefault(up => up.UserId == CurrentUserId && up.Playlist.Name == myFavoriteTrackTitle)
+            ?.Playlist;
+        if (myFavoritePlaylist == null)
+        {
+            myFavoritePlaylist = new Models.Playlist() { Name = myFavoriteTrackTitle };
+            var userPlaylist = new UserPlaylist() { Playlist = myFavoritePlaylist, UserId = CurrentUserId };
+            DbContext.UserPlaylists.Add(userPlaylist);
+        }
+
+        var t = DbContext.Tracks.Single(tr => tr.TrackId == trackId);
+        myFavoritePlaylist.Tracks.Add(t);
+        var success = DbContext.SaveChanges() > 0;
+        if (success) track.IsFavorite = true;
     }
 
     private void UnfavoriteTrack(long trackId)
     {
         var track = Tracks.FirstOrDefault(t => t.TrackId == trackId);
         InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} removed from playlist Favorites.";
+
+        var myFavoritePlaylist = DbContext.UserPlaylists
+            .Include(up => up.Playlist)
+                .ThenInclude(p => p.Tracks)
+            .SingleOrDefault(up => up.UserId == CurrentUserId && up.Playlist.Name == myFavoriteTrackTitle)
+            ?.Playlist;
+
+        var t = DbContext.Tracks.Single(tr => tr.TrackId == trackId);
+        myFavoritePlaylist.Tracks.Remove(t);
+        var success = DbContext.SaveChanges() > 0;
+
+        if (success) track.IsFavorite = false;
     }
 
     private void OpenPlaylistDialog(long trackId)
