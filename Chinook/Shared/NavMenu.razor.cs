@@ -20,8 +20,11 @@ public partial class NavMenu
         await InvokeAsync(StateHasChanged);
         CurrentUserId = await GetUserId();
 
-        PlaylistService.AddFavoritePlaylistIfNotExist(CurrentUserId);
-        PlayLists = await GetCurrentUserPlayListAsync();
+        if (CurrentUserId is not null)
+        {
+            PlaylistService.AddFavoritePlaylistIfNotExist(CurrentUserId);
+            PlayLists = await GetCurrentUserPlayListAsync();
+        }
     }
 
     protected override void OnParametersSet()

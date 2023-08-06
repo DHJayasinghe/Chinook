@@ -1,4 +1,5 @@
 ﻿using Chinook.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chinook.Services;
 
@@ -6,9 +7,9 @@ public class ArtistService
 {
     private readonly ChinookContext _dbContext;
 
-    public ArtistService(ChinookContext dbContext)
+    public ArtistService(IDbContextFactory<ChinookContext> dbContext)
     {
-        _dbContext = dbContext;
+        _dbContext = dbContext.CreateDbContext();
     }
 
     public Artist Get(long id) => id > 0 ? _dbContext.Artists.SingleOrDefault(a => a.ArtistId == id) : null;

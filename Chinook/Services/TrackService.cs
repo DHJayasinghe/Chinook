@@ -8,9 +8,9 @@ public class TrackService
 {
     private readonly ChinookContext _dbContext;
 
-    public TrackService(ChinookContext dbContext)
+    public TrackService(IDbContextFactory<ChinookContext> dbContext)
     {
-        _dbContext = dbContext;
+        _dbContext = dbContext.CreateDbContext();
     }
 
     public List<ClientModels.PlaylistTrack> GetByArtistWithUserFavorite(long artistId, string requestedUserId) => artistId > 0

@@ -10,7 +10,7 @@ public class PlaylistService
     private readonly ChinookContext _dbContext;
     public const string FAVORITE_PLAYLIST_NAME = "My favorite tracks";
 
-    public PlaylistService(ChinookContext dbContext) => _dbContext = dbContext;
+    public PlaylistService(IDbContextFactory<ChinookContext> dbContext) => _dbContext = dbContext.CreateDbContext();
 
     public long Add(string name, string userId)
     {
