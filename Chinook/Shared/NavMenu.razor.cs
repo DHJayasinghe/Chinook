@@ -23,7 +23,7 @@ public partial class NavMenu
         if (CurrentUserId is not null)
         {
             PlaylistService.AddFavoritePlaylistIfNotExist(CurrentUserId);
-            PlayLists = await GetCurrentUserPlayListAsync();
+            PlayLists = GetCurrentUserPlayList();
         }
     }
 
@@ -35,11 +35,11 @@ public partial class NavMenu
 
     private async void RefreshPlaylistAsync(object sender, EventArgs e)
     {
-        PlayLists = GetCurrentUserPlayListAsync().Result;
+        PlayLists = GetCurrentUserPlayList();
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task<List<Playlist>> GetCurrentUserPlayListAsync()
+    private List<Playlist> GetCurrentUserPlayList()
     {
         return PlaylistService.GetByUser(CurrentUserId)
             .OrderBy(up => up.Name != IPlaylistService.FAVORITE_PLAYLIST_NAME)

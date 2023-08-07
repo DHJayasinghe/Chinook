@@ -111,7 +111,7 @@ public partial class ArtistPage
         PlaylistDialog.Open();
     }
 
-    private async Task AddTrackToPlaylist()
+    private void AddTrackToPlaylist()
     {
         CloseInfoMessage();
         if (NewPlayListNameProvided)
