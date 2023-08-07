@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Chinook.Services;
 
-public class ArtistService
+public class ArtistService: IArtistService
 {
     private readonly ChinookContext _dbContext;
 
@@ -18,4 +18,3 @@ public class ArtistService
 
     public List<Album> GetAlbums(long artistId) => _dbContext.Albums.Where(a => a.ArtistId == artistId).ToList();
 }
-

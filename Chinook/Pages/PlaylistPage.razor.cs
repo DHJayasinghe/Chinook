@@ -9,8 +9,8 @@ namespace Chinook.Pages;
 public partial class PlaylistPage
 {
     [Parameter] public long PlaylistId { get; set; }
-    [Inject] TrackService TrackService { get; set; }
-    [Inject] PlaylistService PlaylistService { get; set; }
+    [Inject] ITrackService TrackService { get; set; }
+    [Inject] IPlaylistService PlaylistService { get; set; }
 
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
 
@@ -35,7 +35,7 @@ public partial class PlaylistPage
             _currentPlayListId = PlaylistId;
 
             Playlist = PlaylistService.Get(PlaylistId);
-            IsCurrentPlaylistIsMyFavorite = Playlist.Name == PlaylistService.FAVORITE_PLAYLIST_NAME;
+            IsCurrentPlaylistIsMyFavorite = Playlist.Name == IPlaylistService.FAVORITE_PLAYLIST_NAME;
             Playlist.Tracks = TrackService.GetByPlaylistWithUserFavorite(PlaylistId, CurrentUserId);
         }
     }

@@ -9,9 +9,9 @@ namespace Chinook.Shared;
 public partial class NavMenu
 {
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
-    [CascadingParameter] private PlaylistService dataService { get; set; }
+    [CascadingParameter] private IPlaylistService dataService { get; set; }
 
-    [Inject] PlaylistService PlaylistService { get; set; }
+    [Inject] IPlaylistService PlaylistService { get; set; }
     private string CurrentUserId;
     private List<Playlist> PlayLists;
 
@@ -42,7 +42,7 @@ public partial class NavMenu
     private async Task<List<Playlist>> GetCurrentUserPlayListAsync()
     {
         return PlaylistService.GetByUser(CurrentUserId)
-            .OrderBy(up => up.Name != PlaylistService.FAVORITE_PLAYLIST_NAME)
+            .OrderBy(up => up.Name != IPlaylistService.FAVORITE_PLAYLIST_NAME)
             .ToList();
     }
 

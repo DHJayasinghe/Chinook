@@ -19,9 +19,9 @@ services.AddDefaultIdentity<ChinookUser>(options => options.SignIn.RequireConfir
 services.AddRazorPages();
 services.AddServerSideBlazor();
 services
-    .AddScoped<PlaylistService>()
-    .AddScoped<TrackService>()
-    .AddScoped<ArtistService>();
+    .AddScoped<IPlaylistService, PlaylistService>()
+    .AddScoped<ITrackService, TrackService>()
+    .AddScoped<IArtistService, ArtistService>();
 
 services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ChinookUser>>();
 

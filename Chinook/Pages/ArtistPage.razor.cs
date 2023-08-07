@@ -13,8 +13,8 @@ public partial class ArtistPage
     [Parameter] public long ArtistId { get; set; }
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
 
-    [Inject] TrackService TrackService { get; set; }
-    [Inject] PlaylistService PlaylistService { get; set; }
+    [Inject] ITrackService TrackService { get; set; }
+    [Inject] IPlaylistService PlaylistService { get; set; }
 
     private Modal PlaylistDialog { get; set; }
     private Artist Artist;

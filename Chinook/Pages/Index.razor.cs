@@ -9,7 +9,7 @@ public partial class Index
 {
     private List<Artist> Artists;
     private string searchedArtistName = string.Empty;
-    [Inject] ArtistService ArtistService { get; set; }
+    [Inject] IArtistService ArtistService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
