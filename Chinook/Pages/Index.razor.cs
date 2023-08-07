@@ -1,7 +1,7 @@
-﻿using Chinook.Models;
-using Microsoft.AspNetCore.Components.Web;
+﻿using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using Chinook.Services;
+using Chinook.ClientModels;
 
 namespace Chinook.Pages;
 
@@ -9,7 +9,7 @@ public partial class Index
 {
     private List<Artist> Artists;
     private string searchedArtistName = string.Empty;
-    [Inject] ArtistService ArtistService { get; set; }
+    [Inject] IArtistService ArtistService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

@@ -9,9 +9,9 @@ namespace Chinook.Shared;
 public partial class NavMenu
 {
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
-    [CascadingParameter] private PlaylistService dataService { get; set; }
+    [CascadingParameter] private IPlaylistService dataService { get; set; }
 
-    [Inject] PlaylistService PlaylistService { get; set; }
+    [Inject] IPlaylistService PlaylistService { get; set; }
     private string CurrentUserId;
     private List<Playlist> PlayLists;
 
@@ -23,7 +23,7 @@ public partial class NavMenu
         if (CurrentUserId is not null)
         {
             PlaylistService.AddFavoritePlaylistIfNotExist(CurrentUserId);
-            PlayLists = await GetCurrentUserPlayListAsync();
+            PlayLists = GetCurrentUserPlayList();
         }
     }
 
@@ -35,14 +35,14 @@ public partial class NavMenu
 
     private async void RefreshPlaylistAsync(object sender, EventArgs e)
     {
-        PlayLists = GetCurrentUserPlayListAsync().Result;
+        PlayLists = GetCurrentUserPlayList();
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task<List<Playlist>> GetCurrentUserPlayListAsync()
+    private List<Playlist> GetCurrentUserPlayList()
     {
         return PlaylistService.GetByUser(CurrentUserId)
-            .OrderBy(up => up.Name != PlaylistService.FAVORITE_PLAYLIST_NAME)
+            .OrderBy(up => up.Name != IPlaylistService.FAVORITE_PLAYLIST_NAME)
             .ToList();
     }
 

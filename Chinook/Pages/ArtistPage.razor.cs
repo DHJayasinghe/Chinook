@@ -1,5 +1,4 @@
-﻿using Chinook.Models;
-using Chinook.Services;
+﻿using Chinook.Services;
 using Chinook.Shared.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -13,8 +12,8 @@ public partial class ArtistPage
     [Parameter] public long ArtistId { get; set; }
     [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
 
-    [Inject] TrackService TrackService { get; set; }
-    [Inject] PlaylistService PlaylistService { get; set; }
+    [Inject] ITrackService TrackService { get; set; }
+    [Inject] IPlaylistService PlaylistService { get; set; }
 
     private Modal PlaylistDialog { get; set; }
     private Artist Artist;
@@ -23,7 +22,7 @@ public partial class ArtistPage
     private string InfoMessage;
     private bool SuccessMessage = true;
     private string CurrentUserId;
-    private List<ClientModels.Playlist> PlayLists;
+    private List<Playlist> PlayLists;
 
     private long SelectedPlayListId = 0;
     private string NewPlaylistName = string.Empty;
@@ -112,7 +111,7 @@ public partial class ArtistPage
         PlaylistDialog.Open();
     }
 
-    private async Task AddTrackToPlaylist()
+    private void AddTrackToPlaylist()
     {
         CloseInfoMessage();
         if (NewPlayListNameProvided)
@@ -127,7 +126,7 @@ public partial class ArtistPage
     private void SavePlaylistAndAddToTheExistingList()
     {
         var newPlaylistId = PlaylistService.Add(NewPlaylistName, CurrentUserId);
-        PlayLists.Add(new ClientModels.Playlist { Id = newPlaylistId, Name = NewPlaylistName });
+        PlayLists.Add(new Playlist { Id = newPlaylistId, Name = NewPlaylistName });
         SelectedPlayListId = newPlaylistId;
         NewPlaylistName = string.Empty;
     }

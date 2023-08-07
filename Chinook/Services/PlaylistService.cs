@@ -3,12 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Chinook.Services;
 
-public class PlaylistService
+public class PlaylistService : IPlaylistService
 {
     public event EventHandler PlayListAddedEvent;
 
     private readonly ChinookContext _dbContext;
-    public const string FAVORITE_PLAYLIST_NAME = "My favorite tracks";
 
     public PlaylistService(IDbContextFactory<ChinookContext> dbContext) => _dbContext = dbContext.CreateDbContext();
 
@@ -32,15 +31,15 @@ public class PlaylistService
 
     public void AddFavoritePlaylistIfNotExist(string userId)
     {
-        if (_dbContext.UserPlaylists.Any(up => up.UserId == userId && up.Playlist.Name == FAVORITE_PLAYLIST_NAME)) return;
+        if (_dbContext.UserPlaylists.Any(up => up.UserId == userId && up.Playlist.Name == IPlaylistService.FAVORITE_PLAYLIST_NAME)) return;
 
-        var myFavoritePlaylist = new Models.Playlist() { Name = FAVORITE_PLAYLIST_NAME };
+        var myFavoritePlaylist = new Models.Playlist() { Name = IPlaylistService.FAVORITE_PLAYLIST_NAME };
         var userPlaylist = new UserPlaylist() { Playlist = myFavoritePlaylist, UserId = userId };
         _dbContext.UserPlaylists.Add(userPlaylist);
         _dbContext.SaveChanges();
     }
 
-    protected virtual void TriggerPlaylistAddedEvent()
+    private void TriggerPlaylistAddedEvent()
     {
         // Check if there are any subscribers to the event
         EventHandler handler = PlayListAddedEvent;
@@ -55,7 +54,7 @@ public class PlaylistService
     {
         var favoritePlaylist = _dbContext.UserPlaylists
             .Include(up => up.Playlist)
-            .Single(up => up.UserId == userId && up.Playlist.Name == FAVORITE_PLAYLIST_NAME)
+            .Single(up => up.UserId == userId && up.Playlist.Name == IPlaylistService.FAVORITE_PLAYLIST_NAME)
         .Playlist;
         var track = _dbContext.Tracks.Single(tr => tr.TrackId == trackId);
         favoritePlaylist.Tracks.Add(track);
@@ -67,7 +66,7 @@ public class PlaylistService
         var favoritePlaylist = _dbContext.UserPlaylists
             .Include(up => up.Playlist)
                 .ThenInclude(p => p.Tracks)
-            .Single(up => up.UserId == userId && up.Playlist.Name == FAVORITE_PLAYLIST_NAME)
+            .Single(up => up.UserId == userId && up.Playlist.Name == IPlaylistService.FAVORITE_PLAYLIST_NAME)
         .Playlist;
 
         var track = _dbContext.Tracks.Single(tr => tr.TrackId == trackId);
@@ -83,12 +82,12 @@ public class PlaylistService
 
     public ClientModels.Playlist Get(long id)
     {
-       return _dbContext.Playlists
-           .Where(p => p.PlaylistId == id)
-           .Select(p => new ClientModels.Playlist()
-           {
-               Name = p.Name
-           })
-           .FirstOrDefault();
+        return _dbContext.Playlists
+            .Where(p => p.PlaylistId == id)
+            .Select(p => new ClientModels.Playlist()
+            {
+                Name = p.Name
+            })
+            .FirstOrDefault();
     }
 }

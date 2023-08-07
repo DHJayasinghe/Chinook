@@ -1,10 +1,9 @@
 ﻿using Chinook.ClientModels;
-using Chinook.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Chinook.Services;
 
-public class TrackService
+public class TrackService : ITrackService
 {
     private readonly ChinookContext _dbContext;
 
@@ -13,7 +12,7 @@ public class TrackService
         _dbContext = dbContext.CreateDbContext();
     }
 
-    public List<ClientModels.PlaylistTrack> GetByArtistWithUserFavorite(long artistId, string requestedUserId) => artistId > 0
+    public List<PlaylistTrack> GetByArtistWithUserFavorite(long artistId, string requestedUserId) => artistId > 0
         ? _dbContext.Tracks.Where(a => a.Album.ArtistId == artistId)
             .Include(a => a.Album)
              .Select(t => new PlaylistTrack()
@@ -23,7 +22,7 @@ public class TrackService
                  TrackName = t.Name,
                  IsFavorite = t.Playlists
                         .Where(p => p.UserPlaylists
-                            .Any(up => up.UserId == requestedUserId && up.Playlist.Name == PlaylistService.FAVORITE_PLAYLIST_NAME))
+                            .Any(up => up.UserId == requestedUserId && up.Playlist.Name == IPlaylistService.FAVORITE_PLAYLIST_NAME))
                         .Any()
              })
             .ToList()
@@ -44,12 +43,14 @@ public class TrackService
                 TrackName = t.Name,
                 IsFavorite = t.Playlists
                         .Where(p => p.UserPlaylists
-                            .Any(up => up.UserId == requestedUserId && up.Playlist.Name == PlaylistService.FAVORITE_PLAYLIST_NAME))
+                            .Any(up => up.UserId == requestedUserId && up.Playlist.Name == IPlaylistService.FAVORITE_PLAYLIST_NAME))
                         .Any()
             }).ToList()
        : default;
 
-    public Artist GetArtist(long artistId) => artistId > 0 ? _dbContext.Artists.SingleOrDefault(a => a.ArtistId == artistId) : null;
+    public Artist GetArtist(long artistId) => artistId > 0 ? _dbContext.Artists
+        .Select(a => new Artist { ArtistId = a.ArtistId, Name = a.Name })
+        .SingleOrDefault(a => a.ArtistId == artistId) : null;
 
     public bool AddToPlaylist(long playlistId, long trackId)
     {
