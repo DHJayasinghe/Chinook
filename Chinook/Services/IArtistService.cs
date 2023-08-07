@@ -1,4 +1,4 @@
-﻿using Chinook.Models;
+﻿using Chinook.ClientModels;
 
 namespace Chinook.Services;
 
@@ -8,4 +8,3 @@ public interface IArtistService
     List<Artist> Search(string artistName);
     List<Album> GetAlbums(long artistId);
 }
-

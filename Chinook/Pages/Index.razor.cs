@@ -1,7 +1,7 @@
-﻿using Chinook.Models;
-using Microsoft.AspNetCore.Components.Web;
+﻿using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components;
 using Chinook.Services;
+using Chinook.ClientModels;
 
 namespace Chinook.Pages;
 

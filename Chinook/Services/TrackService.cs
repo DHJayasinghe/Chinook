@@ -1,10 +1,9 @@
 ﻿using Chinook.ClientModels;
-using Chinook.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Chinook.Services;
 
-public class TrackService: ITrackService
+public class TrackService : ITrackService
 {
     private readonly ChinookContext _dbContext;
 
@@ -49,7 +48,9 @@ public class TrackService: ITrackService
             }).ToList()
        : default;
 
-    public Artist GetArtist(long artistId) => artistId > 0 ? _dbContext.Artists.SingleOrDefault(a => a.ArtistId == artistId) : null;
+    public Artist GetArtist(long artistId) => artistId > 0 ? _dbContext.Artists
+        .Select(a => new Artist { ArtistId = a.ArtistId, Name = a.Name })
+        .SingleOrDefault(a => a.ArtistId == artistId) : null;
 
     public bool AddToPlaylist(long playlistId, long trackId)
     {
